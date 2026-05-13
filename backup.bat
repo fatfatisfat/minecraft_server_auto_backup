@@ -12,19 +12,18 @@ set "MIN_FREE_GB=5"
 
 :loop
 cls
-echo [%time%] --- 中華帝國：玩家感應自動備份系統 ---
+echo [%time%] --- 玩家感應自動備份系統 ---
 
-:: 1. 檢查 D 槽空間
+:: 檢查剩餘空間
 for /f "usebackq" %%A in (`powershell -NoProfile -Command "[math]::Truncate((Get-PSDrive D).Free / 1GB)"`) do (set FREE_SPACE=%%A)
 echo 目前磁碟剩餘空間: %FREE_SPACE% GB
 
 if %FREE_SPACE% LSS %MIN_FREE_GB% (
-    echo [警告] 剩餘空間低於 %MIN_FREE_GB% GB，停止備份！
+    echo [警告] 剩餘空間低於 %MIN_FREE_GB% GB，將停止備份！
     goto wait_next
 )
 
-:: 2. 檢測是否有玩家在線上 (檢查 logs/latest.log 是否有玩家進出訊息，或檢查連線埠)
-:: 這裡使用最簡單的方法：檢查伺服器連線埠 (預設 25565) 是否有建立連線
+:: 檢測是否有玩家在線上
 set "PLAYER_ONLINE=0"
 for /f "tokens=*" %%a in ('netstat -an ^| findstr "25565" ^| findstr "ESTABLISHED"') do (
     set "PLAYER_ONLINE=1"
@@ -37,11 +36,11 @@ if "!PLAYER_ONLINE!"=="0" (
 
 echo [%time%] 偵測到玩家在線上，準備開始備份...
 
-:: 3. 準備備份環境
+:: 準備備份環境
 for /f "usebackq" %%B in (`powershell -NoProfile -Command "Get-Date -Format 'yyyyMMdd_HHmm'"`) do (set DT=%%B)
 if not exist "%BACKUP_DIR%" mkdir "%BACKUP_DIR%"
 
-echo 正在建立 [%WORLD_NAME%] 的影分身以避開鎖定...
+echo 正在建立 [%WORLD_NAME%] 的複製檔以避開鎖定...
 robocopy "%SOURCE_DIR%" "%TEMP_DIR%" /MIR /R:0 /W:0 /NDL /NFL /NJH /NJS >nul
 
 echo 正在執行壓縮: world_%DT%.zip...
@@ -56,7 +55,7 @@ if exist "%BACKUP_DIR%\world_%DT%.zip" (
     echo [錯誤] 壓縮失敗！
 )
 
-:: 4. 稀疏化處理 (由密而疏)
+:: 稀疏化處理 (由密而疏)
 echo 執行稀疏化處理...
 set "CUR_DATE=%date:~0,4%%date:~5,2%%date:~8,2%"
 for /f "tokens=1 delims==" %%v in ('set KEEP_DATE_ 2^>nul') do set "%%v="
