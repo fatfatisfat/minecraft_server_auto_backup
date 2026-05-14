@@ -52,4 +52,4 @@
         加上進度條，提供可視化的運作情況<br>
 
 實際運作畫面<br>
-![實際運作畫面](images/aut-backup_working)<br>
+![實際運作畫面](images/auto-backup_working.png)<br>
